@@ -1,44 +1,128 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import heroImg from '../../assets/hero.png';
-import { register } from '../../services/authServices';
+import React from 'react';
+import "./SignUp.css";
 
-export const SignUp = () => {
-  const navigate = useNavigate();
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password !== confirmPassword) return setError("Passwords do not match");
-    try {
-      await register({ fullName, email, password });
-      navigate("/login");
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
-
+function FeatureCard({
+  icon,
+  text,
+}: {
+  icon: "chart" | "robot" | "insight";
+  text: string;
+}) {
   return (
-    <div className="flex min-h-screen justify-center items-center bg-gray-50">
-      <div className="w-full max-w-md p-8 bg-white shadow-md rounded-md">
-        <img src={heroImg} className="mx-auto w-32 h-32" alt="Hero" />
-        <h1 className="text-2xl font-bold mt-4 text-center">Join Pipelytcs</h1>
-        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-        <form className="mt-4 space-y-3" onSubmit={handleSubmit}>
-          <input className="border p-2 w-full rounded" placeholder="Full Name" value={fullName} onChange={e => setFullName(e.target.value)} />
-          <input className="border p-2 w-full rounded" placeholder="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
-          <input className="border p-2 w-full rounded" placeholder="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
-          <input className="border p-2 w-full rounded" placeholder="Confirm Password" type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
-          <button className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700" type="submit">Create Account</button>
-        </form>
-        <p className="text-center mt-2 text-sm text-gray-500">
-          Already have an account? <a href="/login" className="text-blue-500">Login</a>
-        </p>
+    <div className="feature-card">
+      <div className="feature-icon">
+        {icon === "chart" && (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <rect x="4" y="10" width="3" height="8" rx="1" fill="white" />
+            <rect x="10.5" y="6" width="3" height="12" rx="1" fill="white" />
+            <rect x="17" y="13" width="3" height="5" rx="1" fill="white" />
+          </svg>
+        )}
+
+        {icon === "robot" && (
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none">
+            <rect x="5" y="7" width="14" height="11" rx="3" fill="white" />
+            <circle cx="9" cy="12" r="1.4" fill="#8AA9FD" />
+            <circle cx="15" cy="12" r="1.4" fill="#8AA9FD" />
+            <path d="M10 15h4" stroke="#8AA9FD" strokeWidth="1.5" strokeLinecap="round" />
+            <path d="M12 4v3" stroke="white" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        )}
+
+        {icon === "insight" && (
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M4 17l5-5 4 3 6-8"
+              stroke="white"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <circle cx="4" cy="17" r="1.8" fill="white" />
+            <circle cx="9" cy="12" r="1.8" fill="white" />
+            <circle cx="13" cy="15" r="1.8" fill="white" />
+            <circle cx="19" cy="7" r="1.8" fill="white" />
+          </svg>
+        )}
       </div>
+
+      <p>{text}</p>
     </div>
   );
-};
+}
+
+function InputField({
+  label,
+  type = "text",
+}: {
+  label: string;
+  type?: string;
+}) {
+  return (
+    <div className="input-group">
+      <label>{label}</label>
+      <input type={type} />
+    </div>
+  );
+}
+
+export default function SignUp() {
+  return (
+    <main className="signup-page">
+      <section className="signup-wrapper">
+        <div className="signup-left">
+          <div className="brand-logo">P</div>
+
+          <div className="brand-text">
+            <h1>Join Pipelytcs</h1>
+            <p>Start tracking your sales across all platforms in one unified dashboard</p>
+          </div>
+
+          <div className="feature-list">
+            <FeatureCard icon="chart" text="Real-time analytics across all platforms" />
+            <FeatureCard icon="robot" text="AI-powered sales recommendations" />
+            <FeatureCard icon="insight" text="Multi-currency & multi-language support" />
+          </div>
+        </div>
+
+        <div className="signup-card">
+          <div className="form-heading">
+            <h2>Create Account</h2>
+            <p>Start your analytics journey today</p>
+          </div>
+
+          <form className="signup-form">
+            <InputField label="Full Name" />
+            <InputField label="Email" type="email" />
+            <InputField label="Business Category" />
+            <InputField label="Password" type="password" />
+            <InputField label="Confirm Password" type="password" />
+
+            <label className="terms-row">
+              <input type="checkbox" />
+              <span>I agree to the Terms of Service and Privacy Policy</span>
+            </label>
+
+            <button type="submit" className="form-button">
+              Create Account
+            </button>
+
+            <div className="divider">
+              <span></span>
+              <p>Or continue with</p>
+              <span></span>
+            </div>
+
+            <button type="button" className="form-button google-button">
+              Continue with Google
+            </button>
+
+            <p className="login-text">
+              Already have an account? <a href="/login">Login</a>
+            </p>
+          </form>
+        </div>
+      </section>
+    </main>
+  );
+}
