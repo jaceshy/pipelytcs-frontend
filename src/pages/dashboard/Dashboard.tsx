@@ -1,393 +1,185 @@
-import { useEffect, useState } from "react";
 import "./Dashboard.css";
-import { useTranslation } from "react-i18next";
-import {
-  LayoutDashboard,
-  TrendingUp,
-  Box,
-  Settings,
-  Globe,
-  ChevronDown,
-  DollarSign,
-  Moon,
-  Bell,
-  ArrowUpRight,
-  ArrowDownRight,
-} from "lucide-react";
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-} from "recharts";
 
-const menuItems = [
-  { labelKey: "dashboard", icon: <LayoutDashboard size={20} />, active: true },
-  { labelKey: "salesInsights", icon: <TrendingUp size={20} /> },
-  { labelKey: "platformComparison", icon: <Box size={20} /> },
-  { labelKey: "productAnalytics", icon: <Box size={20} /> },
-  { labelKey: "settings", icon: <Settings size={20} /> },
-];
-
-const stats = [
-  {
-    titleKey: "totalSales",
-    value: formatRupiah(404000),
-    noteKey: "totalSalesNote",
-    noteClass: "green",
-    icon: <DollarSign size={14} strokeWidth={2.2} />,
-  },
-  {
-    titleKey: "salesGrowth",
-    value: "18.4%",
-    noteKey: "salesGrowthNote",
-    noteClass: "green",
-    icon: <TrendingUp size={14} strokeWidth={2.2} />,
-  },
-  {
-    titleKey: "unitsSold",
-    value: "1,237",
-    noteKey: "unitsSoldNote",
-    noteClass: "green",
-    icon: <Box size={14} strokeWidth={2.2} />,
-  },
-  {
-    titleKey: "avgOrderValue",
-    value: formatRupiah(327),
-    noteKey: "avgOrderValueNote",
-    noteClass: "red",
-    icon: <Settings size={14} strokeWidth={2.2} />,
-  },
-];
-
-const salesTrendData = [
-  { date: "Dec 1", sales: 41000 },
-  { date: "Dec 5", sales: 50000 },
-  { date: "Dec 10", sales: 46000 },
-  { date: "Dec 15", sales: 61000 },
-  { date: "Dec 20", sales: 58000 },
-  { date: "Dec 25", sales: 74000 },
-  { date: "Dec 30", sales: 69000 },
-];
-
-const revenueData = [
-  { name: "Shopee", value: 36 },
-  { name: "Tokopedia", value: 24 },
-  { name: "Instagram", value: 13 },
-  { name: "Website", value: 8 },
-  { name: "TikTok Shop", value: 19 },
-];
-
-const revenueColors = ["#FF6B35", "#4ECB71", "#E94560", "#3A7DFF", "#1A1A1A"];
-
-const peakHoursData = [
-  { time: "9-12", orders: 2500 },
-  { time: "12-15", orders: 3600 },
-  { time: "15-18", orders: 4400 },
-  { time: "18-21", orders: 6900 },
-  { time: "21-24", orders: 3200 },
+const sidebarMenus = [
+  { label: "Dashboard", icon: "/assets/dashboard/icons/dashboard.svg", active: true },
+  { label: "Sales Insights", icon: "/assets/dashboard/icons/sales-insights.svg" },
+  { label: "Platform Comparison", icon: "/assets/dashboard/icons/platform-comparison.svg" },
+  { label: "Product Analytics", icon: "/assets/dashboard/icons/product-analytics.svg" },
+  { label: "Settings", icon: "/assets/dashboard/icons/settings.svg" },
 ];
 
 const products = [
-  {
-    rank: "#1",
-    name: "Wireless Earbuds Pro",
-    platform: "Shopee",
-    platformClass: "shopee",
-    detail: `342 units • ${formatRupiah(68400)}`,
-    growth: "+15%",
-    up: true,
-  },
-  {
-    rank: "#2",
-    name: "Smart Watch Series 5",
-    platform: "Tokopedia",
-    platformClass: "tokopedia",
-    detail: `287 units • ${formatRupiah(143500)}`,
-    growth: "+15%",
-    up: true,
-  },
-  {
-    rank: "#3",
-    name: "Running Shoes Premium",
-    platform: "TikTok Shop",
-    platformClass: "tiktok",
-    detail: `234 units • ${formatRupiah(46800)}`,
-    growth: "+15%",
-    up: true,
-  },
-  {
-    rank: "#4",
-    name: "Laptop Stand Adjustable",
-    platform: "Instagram",
-    platformClass: "instagram",
-    detail: `198 units • ${formatRupiah(19800)}`,
-    growth: "-5%",
-    up: false,
-  },
-  {
-    rank: "#5",
-    name: "USB-C Hub 7-in-1",
-    platform: "Shopee",
-    platformClass: "shopee",
-    detail: `176 units • ${formatRupiah(17600)}`,
-    growth: "+15%",
-    up: true,
-  },
+  ["#1", "Wireless Earbuds Pro", "Shopee", "342 units", "Rp 68,400,000", "+15%", "up"],
+  ["#2", "Smart Watch Series 5", "Tokopedia", "287 units", "Rp 143,500,000", "+15%", "up"],
+  ["#3", "Running Shoes Premium", "TikTok Shop", "234 units", "Rp 46,800,000", "+15%", "up"],
+  ["#4", "Laptop Stand Adjustable", "Instagram", "198 units", "Rp 19,800,000", "-5%", "down"],
+  ["#5", "USB-C Hub 7-in-1", "Shopee", "176 units", "Rp 17,600,000", "+15%", "up"],
 ];
 
-function formatRupiah(value: number) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-export default function Dashboard() {
-  const { t, i18n } = useTranslation();
-  const [langOpen, setLangOpen] = useState(false);
-
-  useEffect(() => {
-    i18n.changeLanguage("en");
-  }, [i18n]);
-
+const Dashboard = () => {
   return (
     <div className="dashboard-page">
       <header className="dashboard-navbar">
-        <div className="brand">Pipelytcs</div>
+        <h1>Pipelytcs</h1>
 
-        <div className="navbar-actions">
-          <div className="lang-switch">
-            <button
-              type="button"
-              className="lang-button"
-              onClick={() => setLangOpen((v) => !v)}
-            >
-              <Globe size={18} />
-              <span>{i18n.language === "id" ? "Indonesia" : "English"}</span>
-              <ChevronDown size={14} />
-            </button>
-
-            {langOpen && (
-              <div className="lang-menu">
-                <button
-                  type="button"
-                  onClick={() => {
-                    i18n.changeLanguage("en");
-                    setLangOpen(false);
-                  }}
-                >
-                  English
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    i18n.changeLanguage("id");
-                    setLangOpen(false);
-                  }}
-                >
-                  Indonesia
-                </button>
-              </div>
-            )}
+        <div className="dashboard-profile">
+          <div className="avatar">
+            <img src="/assets/dashboard/avatar.png" alt="Admin" />
+            <span />
           </div>
-          <Moon size={18} />
-          <Bell size={18} />
-
-          <div className="admin-box">
-            <div className="avatar-wrap">
-              <img src="/ian.jpg" alt="Admin" className="avatar-img" />
-              <span className="online-dot" />
-              </div>
-            <strong>Admin</strong>
-          </div>
+          <strong>Admin</strong>
         </div>
       </header>
 
-      <aside className="dashboard-sidebar">
-        <nav className="sidebar-menu">
-          {menuItems.map((item) => (
-            <div
-            key={item.labelKey}
-            className={`sidebar-item ${item.active ? "active" : ""}`}
-            >
-              {item.icon}
-              <span>{t(item.labelKey)}</span>
-              </div>
-            ))}
-            </nav>
-            </aside>
-
-      <main className="dashboard-main">
-        <section className="overview-header">
-          <h1>{t("salesOverview")}</h1>
-          <p>{t("salesOverviewDesc")}</p>
-        </section>
-
-        <section className="stats-grid">
-          {stats.map((item) => (
-            <article key={item.titleKey} className="stat-card">
-              <div className="stat-title-row">
-                <h3>{t(item.titleKey)}</h3>
-                <div className="stat-icon">{item.icon}</div>
-              </div>
-              <div className="stat-value">{item.value}</div>
-              <div className={`stat-note ${item.noteClass}`}>{t(item.noteKey)}</div>
-            </article>
+      <div className="dashboard-body">
+        <aside className="dashboard-sidebar">
+          {sidebarMenus.map((menu) => (
+            <div key={menu.label} className={`sidebar-item ${menu.active ? "active" : ""}`}>
+              <img src={menu.icon} alt={menu.label} />
+              <span>{menu.label}</span>
+            </div>
           ))}
-        </section>
+        </aside>
 
-        <section className="charts-row">
-          <article className="panel panel-large">
-            <div className="panel-heading">
-              <h2>{t("salesTrendTitle")}</h2>
-              <p>{t("salesTrendDesc")}</p>
+        <main className="dashboard-main">
+          <section className="dashboard-heading">
+            <h2>Sales Overview</h2>
+            <p>Your complete sales performance across all platforms</p>
+          </section>
+
+          <section className="stats-row">
+            <div className="stat-card stat-large">
+              <div className="stat-title">
+                <span>Total Sales</span>
+                <img src="/assets/dashboard/icons/total-sales.svg" alt="Total Sales" />
+              </div>
+              <h3>Rp 404,000,000</h3>
+              <p>+12.5% from last month</p>
             </div>
 
-            <div className="chart-box line-box">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={salesTrendData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                  <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(0,0,0,0.12)" />
-                  <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} axisLine={{ stroke: "rgba(0,0,0,0.45)" }} />
-                  <YAxis
-                    tick={{ fontSize: 11 }}
-                    tickLine={false}
-                    axisLine={{ stroke: "rgba(0,0,0,0.45)" }}
-                    tickFormatter={(v) => `${v / 1000}k`}
-                  />
-                  <Tooltip
-                    formatter={(value) => [formatRupiah(Number(value)), "Sales"]}
-                    contentStyle={{ borderRadius: 8, border: "1px solid rgba(0,0,0,0.15)" }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="sales"
-                    stroke="#695DE8"
-                    strokeWidth={3}
-                    dot={{ r: 3.5, fill: "#695DE8", stroke: "#695DE8" }}
-                    activeDot={{ r: 5 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+            <div className="stat-card">
+              <div className="stat-title">
+                <span>Sales Growth</span>
+                <img src="/assets/dashboard/icons/sales-growth.svg" alt="Sales Growth" />
+              </div>
+              <h3>18.4%</h3>
+              <p className="green">vs previous period</p>
             </div>
 
-            <div className="chart-legend">
-              <span className="legend-swatch sales"></span>
-              <span>Sales</span>
-            </div>
-          </article>
-
-          <article className="panel panel-large">
-            <div className="panel-heading">
-              <h2>{t("revenueByPlatformTitle")}</h2>
-              <p>{t("revenueByPlatformDesc")}</p>
+            <div className="stat-card">
+              <div className="stat-title">
+                <span>Units Sold</span>
+                <img src="/assets/dashboard/icons/units-sold.svg" alt="Units Sold" />
+              </div>
+              <h3>1,237</h3>
+              <p className="green">+8.2% this week</p>
             </div>
 
-            <div className="chart-box pie-box">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={revenueData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={110}
-                    labelLine={false}
-                    label={({ percent }) => `${Math.round((percent ?? 0) * 100)}%`}
-                  >
-                    {revenueData.map((entry, index) => (
-                      <Cell key={entry.name} fill={revenueColors[index % revenueColors.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value) => [`${value}%`, "Revenue"]}
-                    contentStyle={{ borderRadius: 8, border: "1px solid rgba(0,0,0,0.15)" }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+            <div className="stat-card">
+              <div className="stat-title">
+                <span>Avg Order Value</span>
+                <img src="/assets/dashboard/icons/avg-order-value.svg" alt="Avg Order Value" />
+              </div>
+              <h3>Rp 327,000</h3>
+              <p className="red">-2.1% from avg</p>
+            </div>
+          </section>
+
+          <section className="charts-row">
+            <div className="dashboard-card chart-card">
+              <h3>Sales Trend (Last 30 Days)</h3>
+              <p>Daily revenue performance</p>
+
+              <div className="sales-chart-box">
+                <div className="y-labels">
+                  <span>80000</span>
+                  <span>60000</span>
+                  <span>40000</span>
+                  <span>20000</span>
+                  <span>0</span>
+                </div>
+
+                <svg className="line-chart" viewBox="0 0 310 260">
+                  <line x1="20" y1="10" x2="20" y2="220" />
+                  <line x1="20" y1="220" x2="295" y2="220" />
+                  <polyline points="20,110 65,85 110,98 155,55 195,68 235,20 285,35" />
+                  {[20, 65, 110, 155, 195, 235, 285].map((x, i) => (
+                    <circle
+                      key={x}
+                      cx={x}
+                      cy={[110, 85, 98, 55, 68, 20, 35][i]}
+                      r="4"
+                    />
+                  ))}
+                </svg>
+
+                <div className="x-labels">
+                  <span>Dec 1</span>
+                  <span>Dec 5</span>
+                  <span>Dec 10</span>
+                  <span>Dec 15</span>
+                  <span>Dec 20</span>
+                  <span>Dec 30</span>
+                </div>
+              </div>
+
+              <div className="sales-legend">
+                <span />
+                <b>Sales</b>
+              </div>
             </div>
 
-            <div className="pie-legend">
-              {revenueData.map((item, index) => (
-                <div key={item.name} className="pie-legend-item">
-                  <span
-                    className="legend-dot"
-                    style={{ backgroundColor: revenueColors[index % revenueColors.length] }}
-                  />
-                  <span>{item.name}</span>
+            <div className="dashboard-card chart-card">
+              <h3>Revenue by Platform</h3>
+              <p>Distribution across all channels</p>
+
+              <div className="pie-wrapper">
+                <div className="pie-chart" />
+                <span className="pie-num num-36">36%</span>
+                <span className="pie-num num-24">24%</span>
+                <span className="pie-num num-19">19%</span>
+                <span className="pie-num num-21">21%</span>
+              </div>
+
+              <div className="pie-legend">
+                <span className="orange">Shopee</span>
+                <span className="green-dot">Tokopedia</span>
+                <span className="black">TikTok Shop</span>
+                <span className="pink">Instagram</span>
+              </div>
+            </div>
+          </section>
+
+          <section className="dashboard-card products-card">
+            <h3>Top 5 Best-Selling Products</h3>
+            <p>Highest performing items this month</p>
+
+            <div className="product-list">
+              {products.map(([rank, name, platform, units, revenue, growth, trend]) => (
+                <div className="product-item" key={rank}>
+                  <div className="rank-box">{rank}</div>
+
+                  <div className="product-detail">
+                    <h4>{name}</h4>
+                    <div>
+                      <span className={`badge ${platform.toLowerCase().replaceAll(" ", "-")}`}>
+                        {platform}
+                      </span>
+                      <small>{units} • {revenue}</small>
+                    </div>
+                  </div>
+
+                  <div className={`growth ${trend}`}>
+                    {trend === "up" ? "↑" : "↓"} {growth}
+                  </div>
                 </div>
               ))}
             </div>
-          </article>
-        </section>
-
-        <section className="panel panel-wide">
-          <div className="panel-heading">
-            <h2>{t("peakSalesHoursTitle")}</h2>
-            <p>{t("peakSalesHoursDesc")}</p>
-          </div>
-
-          <div className="chart-box bar-box">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={peakHoursData} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
-                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(0,0,0,0.12)" />
-                <XAxis dataKey="time" tickLine={false} axisLine={{ stroke: "rgba(0,0,0,0.45)" }} />
-                <YAxis tickLine={false} axisLine={{ stroke: "rgba(0,0,0,0.45)" }} />
-                <Tooltip
-                  formatter={(value) => [Number(value).toLocaleString(), "Orders"]}
-                  contentStyle={{ borderRadius: 8, border: "1px solid rgba(0,0,0,0.15)" }}
-                />
-                <Bar dataKey="orders" fill="#1ABC9C" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="chart-legend">
-            <span className="legend-swatch orders"></span>
-            <span>Orders</span>
-          </div>
-        </section>
-
-        <section className="panel panel-wide">
-          <div className="panel-heading">
-           <h2>{t("topProductsTitle")}</h2>
-           <p>{t("topProductsDesc")}</p>
-          </div>
-
-          <div className="products-list">
-            {products.map((item) => (
-              <article key={item.rank} className="product-row">
-                <div className="rank-box">{item.rank}</div>
-
-                <div className="product-main">
-                  <div className="product-name">{item.name}</div>
-
-                  <div className="product-meta">
-                    <span className={`platform-pill ${item.platformClass}`}>{item.platform}</span>
-                    <span className="product-detail">{item.detail}</span>
-                  </div>
-                </div>
-
-                <div className={`product-growth ${item.up ? "up" : "down"}`}>
-                  {item.up ? <ArrowUpRight size={16} /> : <ArrowDownRight size={16} />}
-                  <span>{item.growth}</span>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-      </main>
+          </section>
+        </main>
+      </div>
     </div>
   );
-}
+};
+
+export default Dashboard;

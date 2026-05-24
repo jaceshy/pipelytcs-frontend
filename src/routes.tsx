@@ -10,8 +10,9 @@ export const router = createBrowserRouter([
     element: <App />,
     children: [
       { index: true, element: <Login /> },
-      { path: "dashboard", element: <Dashboard /> },
+      { path: "login", element: <Login /> },
       { path: "signup", element: <SignUp /> },
+      { path: "dashboard", element: <Dashboard /> },
     ],
   },
 ]);
