@@ -87,6 +87,28 @@
   gap: 16px;
   font-size: 14px;
   font-weight: 500;
+
+  color: #000000;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.sidebar-item:link,
+.sidebar-item:visited,
+.sidebar-item:hover,
+.sidebar-item:active {
+  color: #000000;
+  text-decoration: none;
+}
+
+.sidebar-item.active,
+.sidebar-item.active:link,
+.sidebar-item.active:visited,
+.sidebar-item.active:hover,
+.sidebar-item.active:active {
+  background: linear-gradient(90deg, #4078fb 0%, #566af1 51.92%, #695de8 100%);
+  color: #ffffff;
+  text-decoration: none;
 }
 
 .sidebar-item img {

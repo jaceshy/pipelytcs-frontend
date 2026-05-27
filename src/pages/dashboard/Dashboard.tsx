@@ -1,11 +1,32 @@
+import { NavLink } from "react-router-dom";
 import "./Dashboard.css";
 
 const sidebarMenus = [
-  { label: "Dashboard", icon: "/assets/dashboard/icons/dashboard.svg", active: true },
-  { label: "Sales Insights", icon: "/assets/dashboard/icons/sales-insights.svg" },
-  { label: "Platform Comparison", icon: "/assets/dashboard/icons/platform-comparison.svg" },
-  { label: "Product Analytics", icon: "/assets/dashboard/icons/product-analytics.svg" },
-  { label: "Settings", icon: "/assets/dashboard/icons/settings.svg" },
+  {
+    label: "Dashboard",
+    icon: "/assets/dashboard/icons/dashboard.svg",
+    path: "/dashboard",
+  },
+  {
+    label: "Sales Insights",
+    icon: "/assets/dashboard/icons/sales-insights.svg",
+    path: "/sales-insights",
+  },
+  {
+    label: "Platform Comparison",
+    icon: "/assets/dashboard/icons/platform-comparison.svg",
+    path: "/platform-comparison",
+  },
+  {
+    label: "Product Analytics",
+    icon: "/assets/dashboard/icons/product-analytics.svg",
+    path: "/product-analytics",
+  },
+  {
+    label: "Settings",
+    icon: "/assets/dashboard/icons/settings.svg",
+    path: "/settings",
+  },
 ];
 
 const products = [
@@ -34,10 +55,16 @@ const Dashboard = () => {
       <div className="dashboard-body">
         <aside className="dashboard-sidebar">
           {sidebarMenus.map((menu) => (
-            <div key={menu.label} className={`sidebar-item ${menu.active ? "active" : ""}`}>
+            <NavLink
+              key={menu.label}
+              to={menu.path}
+              className={({ isActive }) =>
+                `sidebar-item ${isActive ? "active" : ""}`
+              }
+            >
               <img src={menu.icon} alt={menu.label} />
               <span>{menu.label}</span>
-            </div>
+            </NavLink>
           ))}
         </aside>
 
