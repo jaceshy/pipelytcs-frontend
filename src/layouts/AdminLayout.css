@@ -1,0 +1,141 @@
+* {
+  box-sizing: border-box;
+}
+
+.admin-layout {
+  min-height: 100vh;
+  background: #f6f8fa;
+  font-family: Inter, sans-serif;
+  color: #111111;
+}
+
+.admin-navbar {
+  height: 86px;
+  background: #ffffff;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.18);
+  padding: 0 83px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-navbar h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.admin-profile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.admin-profile strong {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.admin-avatar {
+  width: 35px;
+  height: 35px;
+  position: relative;
+}
+
+.admin-avatar img {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.admin-avatar span {
+  width: 10px;
+  height: 10px;
+  background: #12b76a;
+  border: 1.5px solid #ffffff;
+  border-radius: 50%;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}
+
+.admin-body {
+  display: grid;
+  grid-template-columns: 317px 1fr;
+}
+
+.admin-sidebar {
+  min-height: calc(100vh - 86px);
+  background: #ffffff;
+  box-shadow: 4px 0 4px rgba(0, 0, 0, 0.08);
+  padding: 30px 46px;
+}
+
+.admin-sidebar-item {
+  width: 232px;
+  height: 44px;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 27px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #111111;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.admin-sidebar-item:link,
+.admin-sidebar-item:visited,
+.admin-sidebar-item:hover,
+.admin-sidebar-item:active {
+  color: #111111;
+  text-decoration: none;
+}
+
+.admin-sidebar-item img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.admin-sidebar-item.active {
+  background: linear-gradient(90deg, #4078fb 0%, #566af1 51.92%, #695de8 100%);
+  color: #ffffff;
+}
+
+.admin-sidebar-item.active:link,
+.admin-sidebar-item.active:visited,
+.admin-sidebar-item.active:hover,
+.admin-sidebar-item.active:active {
+  color: #ffffff;
+}
+
+.admin-sidebar-item.active img {
+  filter: brightness(0) invert(1);
+}
+
+.admin-content {
+  padding: 30px 0 80px 46px;
+}
+
+@media (max-width: 1100px) {
+  .admin-navbar {
+    padding: 0 24px;
+  }
+
+  .admin-body {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-sidebar {
+    display: none;
+  }
+
+  .admin-content {
+    padding: 30px 24px 80px;
+  }
+}

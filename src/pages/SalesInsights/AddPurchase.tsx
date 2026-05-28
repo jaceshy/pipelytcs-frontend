@@ -1,16 +1,32 @@
+import { useNavigate } from "react-router-dom";
 import "./AddPurchase.css";
 
 const platforms = ["Shopee", "Tokopedia", "Tiktok Shop", "Instagram"];
 
 const AddPurchase = () => {
+  const navigate = useNavigate();
+
+  const handleBack = () => {
+    navigate("/sales-insights");
+  };
+
   return (
     <div className="add-purchase-page">
       <header className="add-purchase-navbar">
-        <button className="back-button" type="button">
-          ←
+        <button
+          className="back-button"
+          type="button"
+          onClick={handleBack}
+          aria-label="Back to Sales Insights"
+        >
+          <img
+            className="back-button-icon"
+            src="/assets/dashboard/icons/panah-kiri.svg"
+            alt=""
+          />
         </button>
 
-        <div>
+        <div className="add-purchase-title">
           <h1>Add Purchase</h1>
           <p>Enter purchase details manually</p>
         </div>
@@ -20,7 +36,7 @@ const AddPurchase = () => {
         <section className="purchase-card">
           <h2>Purchase Information</h2>
 
-          <div className="form-group full">
+          <div className="form-group">
             <label>
               Buyer Email <span>*</span>
             </label>
@@ -30,7 +46,14 @@ const AddPurchase = () => {
 
         <section className="purchase-card">
           <div className="platform-heading">
-            <h2>▰ Sales Platform <span>*</span></h2>
+            <h2>
+              <img
+                className="platform-heading-icon"
+                src="/assets/dashboard/icons/store.svg"
+                alt=""
+              />
+              Sales Platform <span>*</span>
+            </h2>
             <p>Select one or more platforms where this product is sold</p>
           </div>
 
@@ -60,27 +83,27 @@ const AddPurchase = () => {
               <label>
                 Purchase Date <span>*</span>
               </label>
-              <input type="text" defaultValue="0" />
+              <input type="date" />
             </div>
 
             <div className="form-group">
               <label>
                 Product Value <span>*</span>
               </label>
-              <input type="number" defaultValue={0} />
+              <input type="number" placeholder="0" />
             </div>
 
             <div className="form-group">
               <label>
                 Quantity <span>*</span>
               </label>
-              <input type="number" defaultValue={0} />
+              <input type="number" placeholder="0" />
             </div>
           </div>
         </section>
 
         <div className="purchase-actions">
-          <button className="cancel-btn" type="button">
+          <button className="cancel-btn" type="button" onClick={handleBack}>
             Cancel
           </button>
 

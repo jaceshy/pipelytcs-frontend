@@ -5,6 +5,7 @@ import SignUp from "./pages/Auth/SignUp";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import SalesInsights from "./pages/SalesInsights/SalesInsights";
 import AddPurchase from "./pages/SalesInsights/AddPurchase";
+import AdminLayout from "./layouts/AdminLayout";
 
 export const router = createBrowserRouter([
   {
@@ -14,9 +15,19 @@ export const router = createBrowserRouter([
       { index: true, element: <Login /> },
       { path: "login", element: <Login /> },
       { path: "signup", element: <SignUp /> },
-      { path: "dashboard", element: <Dashboard /> },
-      { path: "sales-insights", element: <SalesInsights /> },
-      { path: "sales-insights/add-purchase", element: <AddPurchase /> },
+
+      {
+        element: <AdminLayout />,
+        children: [
+          { path: "dashboard", element: <Dashboard /> },
+          { path: "sales-insights", element: <SalesInsights /> },
+        ],
+      },
+
+      {
+        path: "sales-insights/add-purchase",
+        element: <AddPurchase />,
+      },
     ],
   },
 ]);
