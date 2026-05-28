@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet } from "react-router-dom";
 import "./AdminLayout.css";
 
 const sidebarMenus = [
@@ -35,13 +35,14 @@ const AdminLayout = () => {
       <header className="admin-navbar">
         <h1>Pipelytcs</h1>
 
-        <div className="admin-profile">
+        <Link to="/settings" className="admin-profile">
           <div className="admin-avatar">
             <img src="/assets/dashboard/avatar.png" alt="Admin" />
             <span />
           </div>
+
           <strong>Admin</strong>
-        </div>
+        </Link>
       </header>
 
       <div className="admin-body">
