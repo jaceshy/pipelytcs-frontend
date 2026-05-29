@@ -2,6 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./SalesInsights.css";
 
+type SalesInsightsProps = {
+  mode?: "admin" | "team";
+};
+
 const stats = [
   {
     title: "Average Order Value",
@@ -56,8 +60,9 @@ const periodOptions = [
 
 type DropdownType = "platform" | "period" | null;
 
-const SalesInsights = () => {
+const SalesInsights = ({ mode = "admin" }: SalesInsightsProps) => {
   const navigate = useNavigate();
+  const isTeam = mode === "team";
 
   const [selectedPlatform, setSelectedPlatform] = useState("All Platforms");
   const [selectedPeriod, setSelectedPeriod] = useState("Last 30 Days");
@@ -71,13 +76,15 @@ const SalesInsights = () => {
           <p>Deep dive into your sales metrics and customer behavior</p>
         </div>
 
-        <button
-          className="add-purchase-btn"
-          type="button"
-          onClick={() => navigate("/sales-insights/add-purchase")}
-        >
-          + Add Purchase
-        </button>
+        {!isTeam && (
+          <button
+            className="add-purchase-btn"
+            type="button"
+            onClick={() => navigate("/sales-insights/add-purchase")}
+          >
+            + Add Purchase
+          </button>
+        )}
       </section>
 
       <div className="sales-filters">
@@ -216,16 +223,34 @@ const SalesInsights = () => {
               />
             ))}
 
-            <text x="0" y="15">80000</text>
-            <text x="0" y="75">60000</text>
-            <text x="0" y="135">40000</text>
-            <text x="0" y="200">20000</text>
-            <text x="40" y="266">0</text>
+            <text x="0" y="15">
+              80000
+            </text>
+            <text x="0" y="75">
+              60000
+            </text>
+            <text x="0" y="135">
+              40000
+            </text>
+            <text x="0" y="200">
+              20000
+            </text>
+            <text x="40" y="266">
+              0
+            </text>
 
-            <text x="40" y="292">Week 1</text>
-            <text x="245" y="292">Week 2</text>
-            <text x="455" y="292">Week 3</text>
-            <text x="675" y="292">Week 4</text>
+            <text x="40" y="292">
+              Week 1
+            </text>
+            <text x="245" y="292">
+              Week 2
+            </text>
+            <text x="455" y="292">
+              Week 3
+            </text>
+            <text x="675" y="292">
+              Week 4
+            </text>
           </svg>
         </div>
 

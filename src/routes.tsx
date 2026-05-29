@@ -5,6 +5,7 @@ import Login from "./pages/Auth/Login";
 import SignUp from "./pages/Auth/SignUp";
 
 import AdminLayout from "./layouts/AdminLayout";
+import TeamLayout from "./layouts/TeamLayout";
 
 import Dashboard from "./pages/Dashboard/Dashboard";
 import SalesInsights from "./pages/SalesInsights/SalesInsights";
@@ -53,6 +54,32 @@ export const router = createBrowserRouter([
           },
           {
             path: "settings",
+            element: <Settings />,
+          },
+        ],
+      },
+
+      {
+        element: <TeamLayout />,
+        children: [
+          {
+            path: "team/dashboard",
+            element: <Dashboard />,
+          },
+          {
+            path: "team/sales-insights",
+            element: <SalesInsights mode="team" />,
+          },
+          {
+            path: "team/platform-comparison",
+            element: <PlatformComparison />,
+          },
+          {
+            path: "team/product-analytics",
+            element: <ProductAnalytics mode="team" />,
+          },
+          {
+            path: "team/settings",
             element: <Settings />,
           },
         ],

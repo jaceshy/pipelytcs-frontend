@@ -1,6 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import "./ProductAnalytics.css";
 
+type ProductAnalyticsProps = {
+  mode?: "admin" | "team";
+};
+
 const products = [
   {
     name: "Wireless Earbuds Pro",
@@ -72,6 +76,7 @@ const summaryCards = [
   {
     title: "Low Stock Alert",
     value: "5",
+    teamValue: "0",
     subtitle: "Need restocking",
     icon: "/assets/dashboard/icons/low-stock-alert.svg",
     className: "orange",
@@ -82,8 +87,9 @@ const getPlatformClass = (platform: string) => {
   return platform.toLowerCase().replaceAll(" ", "-");
 };
 
-const ProductAnalytics = () => {
+const ProductAnalytics = ({ mode = "admin" }: ProductAnalyticsProps) => {
   const navigate = useNavigate();
+  const isTeam = mode === "team";
 
   return (
     <div className="product-analytics-page">
@@ -93,14 +99,16 @@ const ProductAnalytics = () => {
           <p>Analyze individual product sales and inventory trends</p>
         </div>
 
-        <button
-          className="pa-add-btn"
-          type="button"
-          onClick={() => navigate("/product-analytics/add-product")}
-        >
-          <span>+</span>
-          Add Product
-        </button>
+        {!isTeam && (
+          <button
+            className="pa-add-btn"
+            type="button"
+            onClick={() => navigate("/product-analytics/add-product")}
+          >
+            <span>+</span>
+            Add Product
+          </button>
+        )}
       </section>
 
       <section className="pa-card pa-table-card">
@@ -117,7 +125,7 @@ const ProductAnalytics = () => {
               <th>Revenue</th>
               <th>Trend</th>
               <th>Status</th>
-              <th>Actions</th>
+              {!isTeam && <th>Actions</th>}
             </tr>
           </thead>
 
@@ -130,7 +138,11 @@ const ProductAnalytics = () => {
                 </td>
 
                 <td>
-                  <span className={`pa-platform-badge ${getPlatformClass(product.platform)}`}>
+                  <span
+                    className={`pa-platform-badge ${getPlatformClass(
+                      product.platform
+                    )}`}
+                  >
                     {product.platform}
                   </span>
                 </td>
@@ -138,15 +150,17 @@ const ProductAnalytics = () => {
                 <td>{product.revenue}</td>
 
                 <td>
-                    <span className={`pa-trend ${product.trendType}`}>
-                        <img
-                        className="pa-trend-icon"
-                        src={`/assets/dashboard/icons/${product.trendType === "up" ? "up.svg" : "down.svg"}`}
-                        alt=""
-                        />
-                        {product.trend}
-                    </span>
-                    </td>
+                  <span className={`pa-trend ${product.trendType}`}>
+                    <img
+                      className="pa-trend-icon"
+                      src={`/assets/dashboard/icons/${
+                        product.trendType === "up" ? "up.svg" : "down.svg"
+                      }`}
+                      alt=""
+                    />
+                    {product.trend}
+                  </span>
+                </td>
 
                 <td>
                   <span className={`pa-status-badge ${product.statusType}`}>
@@ -154,25 +168,27 @@ const ProductAnalytics = () => {
                   </span>
                 </td>
 
-                <td>
+                {!isTeam && (
+                  <td>
                     <div className="pa-actions">
-                        <button type="button" aria-label="Edit product">
+                      <button type="button" aria-label="Edit product">
                         <img
-                            className="pa-action-icon"
-                            src="/assets/dashboard/icons/edit.svg"
-                            alt=""
+                          className="pa-action-icon"
+                          src="/assets/dashboard/icons/edit.svg"
+                          alt=""
                         />
-                        </button>
+                      </button>
 
-                        <button type="button" aria-label="Delete product">
+                      <button type="button" aria-label="Delete product">
                         <img
-                            className="pa-action-icon"
-                            src="/assets/dashboard/icons/delete.svg"
-                            alt=""
+                          className="pa-action-icon"
+                          src="/assets/dashboard/icons/delete.svg"
+                          alt=""
                         />
-                        </button>
+                      </button>
                     </div>
-                    </td>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
@@ -184,7 +200,7 @@ const ProductAnalytics = () => {
           <div className={`pa-summary-card ${card.className}`} key={card.title}>
             <img src={card.icon} alt="" />
             <h3>{card.title}</h3>
-            <strong>{card.value}</strong>
+            <strong>{isTeam && card.teamValue ? card.teamValue : card.value}</strong>
             <p>{card.subtitle}</p>
           </div>
         ))}
