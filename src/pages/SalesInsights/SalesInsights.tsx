@@ -1,72 +1,237 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { apiRequest } from "../../services/api";
 import "./SalesInsights.css";
 
 type SalesInsightsProps = {
   mode?: "admin" | "team";
 };
 
-const stats = [
-  {
-    title: "Average Order Value",
-    value: "Rp 327.000",
-    change: "+5.2%",
-    icon: "/assets/dashboard/icons/total-sales.svg",
-  },
-  {
-    title: "Customer Retention",
-    value: "82.4%",
-    change: "+3.1%",
-    icon: "/assets/dashboard/icons/customer-retention.svg",
-  },
-  {
-    title: "Repeat Purchase Rate",
-    value: "45.6%",
-    change: "+2.8%",
-    icon: "/assets/dashboard/icons/repeat-purchase-rate.svg",
-  },
-  {
-    title: "Growth Rate",
-    value: "18.9%",
-    change: "Monthly",
-    icon: "/assets/dashboard/icons/sales-growth.svg",
-  },
-];
+type DropdownType = "platform" | "period" | null;
 
-const performanceMetrics = [
-  ["Total Revenue", "Rp 404,000,000", "Rp 359,000,000", "+12.5%"],
-  ["Total Orders", "1,237", "1,142", "+8.3%"],
-  ["Average Order Value", "Rp 327,000", "Rp 314,000", "+4.1%"],
-  ["New Customers", "342", "298", "+14.8%"],
-  ["Returning Customers", "895", "844", "+6.0%"],
-];
+type SalesSummary = {
+  average_order_value: number;
+  customer_retention_rate: number;
+  repeat_purchase_rate: number;
+  growth_rate: number;
+  total_revenue: number;
+  total_units_sold: number;
+  total_orders: number;
+  unique_customers: number;
+  returning_customers: number;
+};
 
-const topBuyers = [
-  ["1", "maylatahmida2007@gmail.com", "998", "Rp 98,700,000"],
-  ["2", "jacindaqueen67@gmail.com", "877", "Rp 78,000,000"],
-  ["3", "imtinandarling@gmail.com", "540", "Rp 40,800,000"],
-  ["4", "gosongsyef@gmail.com", "180", "Rp 12,980,000"],
-  ["5", "bismillah1234@gmail.com", "178", "Rp 9,998,000"],
-];
+type SalesTrendItem = {
+  tanggal: string;
+  total_revenue: number;
+  total_units_sold: number;
+};
 
-const platformOptions = ["Shopee", "Tokopedia", "Tiktok Shop", "Instagram Shop"];
+type CategoryRevenueItem = {
+  category: string;
+  total_revenue: number;
+};
+
+type PerformanceMetric = {
+  metric: string;
+  this_period: number;
+  last_period: number;
+  change: number;
+  type: "currency" | "number";
+};
+
+type TopBuyer = {
+  rank: number;
+  buyer_email: string;
+  total_order: number;
+  total_units: number;
+  total_purchase: number;
+};
+
+type PlatformInsight = {
+  id: number;
+  nama_platform: string;
+  total_revenue: number;
+  total_units_sold: number;
+};
+
+type SalesInsightResponse = {
+  message: string;
+  summary: SalesSummary;
+  sales_trend: SalesTrendItem[];
+  category_revenue: CategoryRevenueItem[];
+  platform_insight: PlatformInsight[];
+  performance_metrics: PerformanceMetric[];
+  top_buyers: TopBuyer[];
+};
+
+const platformOptions = [
+  { label: "All Platforms", value: "all" },
+  { label: "Shopee", value: "1" },
+  { label: "Tokopedia", value: "2" },
+  { label: "TikTok Shop", value: "3" },
+  { label: "Instagram", value: "4" },
+];
 
 const periodOptions = [
-  "Last 7 Days",
-  "Last 30 Days",
-  "Last 90 Days",
-  "Last 12 Months",
+  { label: "Last 7 Days", value: "7" },
+  { label: "Last 30 Days", value: "30" },
+  { label: "Last 90 Days", value: "90" },
+  { label: "Last 12 Months", value: "365" },
 ];
 
-type DropdownType = "platform" | "period" | null;
+const emptySummary: SalesSummary = {
+  average_order_value: 0,
+  customer_retention_rate: 0,
+  repeat_purchase_rate: 0,
+  growth_rate: 0,
+  total_revenue: 0,
+  total_units_sold: 0,
+  total_orders: 0,
+  unique_customers: 0,
+  returning_customers: 0,
+};
+
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(Number(value || 0));
+};
+
+const formatPercent = (value: number) => {
+  return `${Number(value || 0).toFixed(1)}%`;
+};
+
+const formatChange = (value: number) => {
+  const sign = Number(value || 0) >= 0 ? "+" : "";
+  return `${sign}${Number(value || 0).toFixed(1)}%`;
+};
+
+const formatDateLabel = (date: string) => {
+  return new Date(date).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+};
+
+const formatMetricValue = (value: number, type: "currency" | "number") => {
+  if (type === "currency") {
+    return formatCurrency(value);
+  }
+
+  return new Intl.NumberFormat("id-ID").format(Number(value || 0));
+};
+
+const makeChartPoints = (
+  data: SalesTrendItem[],
+  key: "total_revenue" | "total_units_sold"
+) => {
+  if (data.length === 0) {
+    return "";
+  }
+
+  const maxValue = Math.max(...data.map((item) => Number(item[key] || 0)), 1);
+  const step = data.length > 1 ? 640 / (data.length - 1) : 0;
+
+  return data
+    .map((item, index) => {
+      const x = data.length > 1 ? 60 + index * step : 380;
+      const y = 260 - (Number(item[key] || 0) / maxValue) * 230;
+
+      return `${x},${y}`;
+    })
+    .join(" ");
+};
 
 const SalesInsights = ({ mode = "admin" }: SalesInsightsProps) => {
   const navigate = useNavigate();
   const isTeam = mode === "team";
 
-  const [selectedPlatform, setSelectedPlatform] = useState("All Platforms");
-  const [selectedPeriod, setSelectedPeriod] = useState("Last 30 Days");
+  const [selectedPlatform, setSelectedPlatform] = useState(platformOptions[0]);
+  const [selectedPeriod, setSelectedPeriod] = useState(periodOptions[1]);
   const [openDropdown, setOpenDropdown] = useState<DropdownType>(null);
+
+  const [summary, setSummary] = useState<SalesSummary>(emptySummary);
+  const [salesTrend, setSalesTrend] = useState<SalesTrendItem[]>([]);
+  const [categoryRevenue, setCategoryRevenue] = useState<CategoryRevenueItem[]>([]);
+  const [performanceMetrics, setPerformanceMetrics] = useState<PerformanceMetric[]>([]);
+  const [topBuyers, setTopBuyers] = useState<TopBuyer[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const fetchSalesInsights = async () => {
+    setIsLoading(true);
+    setErrorMessage("");
+
+    try {
+      const query = new URLSearchParams({
+        period_days: selectedPeriod.value,
+        platform_id: selectedPlatform.value,
+      });
+
+      const response = await apiRequest<SalesInsightResponse>(
+        `/sales-insights?${query.toString()}`
+      );
+
+      setSummary(response.summary || emptySummary);
+      setSalesTrend(response.sales_trend || []);
+      setCategoryRevenue(response.category_revenue || []);
+      setPerformanceMetrics(response.performance_metrics || []);
+      setTopBuyers(response.top_buyers || []);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Failed to load sales insights"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSalesInsights();
+  }, [selectedPlatform.value, selectedPeriod.value]);
+
+  const stats = [
+    {
+      title: "Average Order Value",
+      value: formatCurrency(summary.average_order_value),
+      change: formatChange(summary.growth_rate),
+      icon: "/assets/dashboard/icons/total-sales.svg",
+    },
+    {
+      title: "Customer Retention",
+      value: formatPercent(summary.customer_retention_rate),
+      change: `${summary.returning_customers} returning`,
+      icon: "/assets/dashboard/icons/customer-retention.svg",
+    },
+    {
+      title: "Repeat Purchase Rate",
+      value: formatPercent(summary.repeat_purchase_rate),
+      change: `${summary.unique_customers} customers`,
+      icon: "/assets/dashboard/icons/repeat-purchase-rate.svg",
+    },
+    {
+      title: "Growth Rate",
+      value: formatPercent(summary.growth_rate),
+      change: selectedPeriod.label,
+      icon: "/assets/dashboard/icons/sales-growth.svg",
+    },
+  ];
+
+  const revenuePoints = useMemo(() => {
+    return makeChartPoints(salesTrend, "total_revenue");
+  }, [salesTrend]);
+
+  const unitsPoints = useMemo(() => {
+    return makeChartPoints(salesTrend, "total_units_sold");
+  }, [salesTrend]);
+
+  const maxCategoryRevenue = Math.max(
+    ...categoryRevenue.map((item) => Number(item.total_revenue || 0)),
+    1
+  );
 
   return (
     <div className="sales-page-content">
@@ -98,7 +263,7 @@ const SalesInsights = ({ mode = "admin" }: SalesInsightsProps) => {
               setOpenDropdown(openDropdown === "platform" ? null : "platform")
             }
           >
-            <span>{selectedPlatform}</span>
+            <span>{selectedPlatform.label}</span>
             <img
               className="dropdown-chevron-img"
               src="/assets/dashboard/icons/dropdown.svg"
@@ -110,17 +275,17 @@ const SalesInsights = ({ mode = "admin" }: SalesInsightsProps) => {
             <div className="custom-dropdown-menu">
               {platformOptions.map((option) => (
                 <button
-                  key={option}
+                  key={option.value}
                   type="button"
                   className={`custom-dropdown-option ${
-                    selectedPlatform === option ? "selected" : ""
+                    selectedPlatform.value === option.value ? "selected" : ""
                   }`}
                   onClick={() => {
                     setSelectedPlatform(option);
                     setOpenDropdown(null);
                   }}
                 >
-                  {option}
+                  {option.label}
                 </button>
               ))}
             </div>
@@ -137,7 +302,7 @@ const SalesInsights = ({ mode = "admin" }: SalesInsightsProps) => {
               setOpenDropdown(openDropdown === "period" ? null : "period")
             }
           >
-            <span>{selectedPeriod}</span>
+            <span>{selectedPeriod.label}</span>
             <img
               className="dropdown-chevron-img"
               src="/assets/dashboard/icons/dropdown.svg"
@@ -149,23 +314,27 @@ const SalesInsights = ({ mode = "admin" }: SalesInsightsProps) => {
             <div className="custom-dropdown-menu">
               {periodOptions.map((option) => (
                 <button
-                  key={option}
+                  key={option.value}
                   type="button"
                   className={`custom-dropdown-option ${
-                    selectedPeriod === option ? "selected" : ""
+                    selectedPeriod.value === option.value ? "selected" : ""
                   }`}
                   onClick={() => {
                     setSelectedPeriod(option);
                     setOpenDropdown(null);
                   }}
                 >
-                  {option}
+                  {option.label}
                 </button>
               ))}
             </div>
           )}
         </div>
       </div>
+
+      {errorMessage && (
+        <p style={{ color: "#b42318", marginTop: "18px" }}>{errorMessage}</p>
+      )}
 
       <section className="sales-stats">
         {stats.map((stat) => (
@@ -175,8 +344,8 @@ const SalesInsights = ({ mode = "admin" }: SalesInsightsProps) => {
               <img className="sales-stat-icon" src={stat.icon} alt="" />
             </div>
 
-            <h3>{stat.value}</h3>
-            <small>{stat.change}</small>
+            <h3>{isLoading ? "..." : stat.value}</h3>
+            <small>{isLoading ? "Loading" : stat.change}</small>
           </div>
         ))}
       </section>
@@ -185,7 +354,7 @@ const SalesInsights = ({ mode = "admin" }: SalesInsightsProps) => {
         <div className="sales-card-header">
           <div>
             <h3>Sales & Units Performance</h3>
-            <p>Weekly comparison of revenue and quantity</p>
+            <p>Revenue and quantity from selected period</p>
           </div>
 
           <button className="week-btn" type="button">
@@ -194,7 +363,7 @@ const SalesInsights = ({ mode = "admin" }: SalesInsightsProps) => {
               src="/assets/dashboard/icons/calendar.svg"
               alt=""
             />
-            <span>Last 4 Weeks</span>
+            <span>{selectedPeriod.label}</span>
           </button>
         </div>
 
@@ -203,60 +372,57 @@ const SalesInsights = ({ mode = "admin" }: SalesInsightsProps) => {
             <line x1="60" y1="10" x2="60" y2="260" />
             <line x1="60" y1="260" x2="700" y2="260" />
 
-            <polyline points="60,125 270,100 480,112 700,75" />
-            <polyline
-              className="units-line"
-              points="60,260 270,260 480,260 700,260"
-            />
+            {salesTrend.length > 0 && (
+              <>
+                <polyline points={revenuePoints} />
+                <polyline className="units-line" points={unitsPoints} />
 
-            {[60, 270, 480, 700].map((x, i) => (
-              <circle key={x} cx={x} cy={[125, 100, 112, 75][i]} r="7" />
-            ))}
+                {salesTrend.map((item, index) => {
+                  const revenuePoint = revenuePoints.split(" ")[index]?.split(",");
+                  const unitsPoint = unitsPoints.split(" ")[index]?.split(",");
 
-            {[60, 270, 480, 700].map((x) => (
-              <circle
-                className="units-dot"
-                key={`units-${x}`}
-                cx={x}
-                cy="260"
-                r="7"
-              />
-            ))}
+                  return (
+                    <g key={item.tanggal}>
+                      {revenuePoint && (
+                        <circle cx={revenuePoint[0]} cy={revenuePoint[1]} r="6" />
+                      )}
 
-            <text x="0" y="15">
-              80000
-            </text>
-            <text x="0" y="75">
-              60000
-            </text>
-            <text x="0" y="135">
-              40000
-            </text>
-            <text x="0" y="200">
-              20000
-            </text>
-            <text x="40" y="266">
-              0
-            </text>
+                      {unitsPoint && (
+                        <circle
+                          className="units-dot"
+                          cx={unitsPoint[0]}
+                          cy={unitsPoint[1]}
+                          r="6"
+                        />
+                      )}
+                    </g>
+                  );
+                })}
+              </>
+            )}
 
-            <text x="40" y="292">
-              Week 1
-            </text>
-            <text x="245" y="292">
-              Week 2
-            </text>
-            <text x="455" y="292">
-              Week 3
-            </text>
-            <text x="675" y="292">
-              Week 4
-            </text>
+            <text x="0" y="15">High</text>
+            <text x="0" y="135">Mid</text>
+            <text x="40" y="266">0</text>
+
+            {salesTrend.map((item, index) => {
+              const step = salesTrend.length > 1 ? 640 / (salesTrend.length - 1) : 0;
+              const x = salesTrend.length > 1 ? 40 + index * step : 350;
+
+              return (
+                <text key={item.tanggal} x={x} y="295">
+                  {formatDateLabel(item.tanggal)}
+                </text>
+              );
+            })}
           </svg>
         </div>
 
         <div className="chart-legend">
-          <span className="blue-box" /> Revenue
-          <span className="purple-box" /> Units Sold
+          <span className="blue-box" />
+          <span>Revenue</span>
+          <span className="purple-box" />
+          <span>Units Sold</span>
         </div>
       </section>
 
@@ -267,37 +433,42 @@ const SalesInsights = ({ mode = "admin" }: SalesInsightsProps) => {
 
           <div className="bar-chart-area">
             <div className="bar-y-labels">
-              <span>140000</span>
-              <span>105000</span>
-              <span>70000</span>
-              <span>35000</span>
+              <span>High</span>
+              <span>Mid</span>
+              <span>Low</span>
               <span>0</span>
             </div>
 
             <div className="bar-chart">
-              {[
-                ["Electronic", 220],
-                ["Fashion", 175],
-                ["Beauty", 135],
-                ["Home", 92],
-                ["Sports", 78],
-              ].map(([category, height]) => (
-                <div className="bar-item" key={category}>
-                  <div style={{ height: `${height}px` }} />
-                  <span>{category}</span>
-                </div>
-              ))}
+              {categoryRevenue.length === 0 && (
+                <p style={{ margin: "0 0 20px 10px" }}>No category data</p>
+              )}
+
+              {categoryRevenue.map((item) => {
+                const height = Math.max(
+                  (Number(item.total_revenue || 0) / maxCategoryRevenue) * 250,
+                  20
+                );
+
+                return (
+                  <div className="bar-item" key={item.category}>
+                    <div style={{ height }} />
+                    <span>{item.category}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
           <div className="chart-legend purple-only">
-            <span className="purple-box" /> Revenue
+            <span className="purple-box" />
+            <span>Revenue</span>
           </div>
         </div>
 
         <div className="sales-card small-chart-card">
-          <h3>Customer Retention Trend</h3>
-          <p>Monthly retention rate percentage</p>
+          <h3>Customer Summary</h3>
+          <p>Retention and repeat purchase overview</p>
 
           <div className="retention-chart-area">
             <div className="retention-y-labels">
@@ -310,34 +481,31 @@ const SalesInsights = ({ mode = "admin" }: SalesInsightsProps) => {
 
             <div className="retention-chart">
               <svg viewBox="0 0 285 240">
-                <line x1="0" y1="10" x2="0" y2="205" />
-                <line x1="0" y1="205" x2="260" y2="205" />
+                <line x1="35" y1="5" x2="35" y2="210" />
+                <line x1="35" y1="210" x2="280" y2="210" />
 
-                <polyline points="0,88 52,76 104,68 156,54 208,42 260,34" />
+                <polyline
+                  points={`35,${210 - summary.customer_retention_rate * 2} 150,${
+                    210 - summary.repeat_purchase_rate * 2
+                  } 270,${210 - summary.growth_rate * 2}`}
+                />
 
-                {[0, 52, 104, 156, 208, 260].map((x, i) => (
-                  <circle
-                    key={x}
-                    cx={x}
-                    cy={[88, 76, 68, 54, 42, 34][i]}
-                    r="6"
-                  />
-                ))}
+                <circle cx="35" cy={210 - summary.customer_retention_rate * 2} r="6" />
+                <circle cx="150" cy={210 - summary.repeat_purchase_rate * 2} r="6" />
+                <circle cx="270" cy={210 - summary.growth_rate * 2} r="6" />
               </svg>
 
               <div className="retention-x-labels">
-                <span>Nov</span>
-                <span>Dec</span>
-                <span>Jan</span>
-                <span>Feb</span>
-                <span>Mar</span>
-                <span>Apr</span>
+                <span>Retention</span>
+                <span>Repeat</span>
+                <span>Growth</span>
               </div>
             </div>
           </div>
 
           <div className="chart-legend green-only">
-            <span className="green-box" /> Retention Rate (%)
+            <span className="green-box" />
+            <span>Percentage</span>
           </div>
         </div>
       </section>
@@ -350,19 +518,19 @@ const SalesInsights = ({ mode = "admin" }: SalesInsightsProps) => {
           <thead>
             <tr>
               <th>Metric</th>
-              <th>This Month</th>
-              <th>Last Month</th>
+              <th>This Period</th>
+              <th>Last Period</th>
               <th>Change</th>
             </tr>
           </thead>
 
           <tbody>
-            {performanceMetrics.map(([metric, thisMonth, lastMonth, change]) => (
-              <tr key={metric}>
-                <td>{metric}</td>
-                <td>{thisMonth}</td>
-                <td>{lastMonth}</td>
-                <td className="positive-change">{change}</td>
+            {performanceMetrics.map((row) => (
+              <tr key={row.metric}>
+                <td>{row.metric}</td>
+                <td>{formatMetricValue(row.this_period, row.type)}</td>
+                <td>{formatMetricValue(row.last_period, row.type)}</td>
+                <td className="positive-change">{formatChange(row.change)}</td>
               </tr>
             ))}
           </tbody>
@@ -371,7 +539,7 @@ const SalesInsights = ({ mode = "admin" }: SalesInsightsProps) => {
 
       <section className="sales-card sales-table-card">
         <h3>Top Buyer</h3>
-        <p>Top Buyer per month</p>
+        <p>Top buyer per selected period</p>
 
         <table className="sales-data-table">
           <thead>
@@ -384,12 +552,18 @@ const SalesInsights = ({ mode = "admin" }: SalesInsightsProps) => {
           </thead>
 
           <tbody>
-            {topBuyers.map(([rank, email, totalOrder, totalPurchase]) => (
-              <tr key={email}>
-                <td>{rank}</td>
-                <td>{email}</td>
-                <td>{totalOrder}</td>
-                <td>{totalPurchase}</td>
+            {topBuyers.length === 0 && (
+              <tr>
+                <td colSpan={4}>No buyer data found.</td>
+              </tr>
+            )}
+
+            {topBuyers.map((buyer) => (
+              <tr key={buyer.buyer_email}>
+                <td>{buyer.rank}</td>
+                <td>{buyer.buyer_email}</td>
+                <td>{buyer.total_order}</td>
+                <td>{formatCurrency(buyer.total_purchase)}</td>
               </tr>
             ))}
           </tbody>

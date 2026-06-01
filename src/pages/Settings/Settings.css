@@ -330,3 +330,131 @@
     width: 160px;
   }
 }
+
+.logout-btn {
+  width: 130px;
+  height: 48px;
+  margin-top: 25px;
+  border: none;
+  border-radius: 64px;
+  background: #b42318;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 17px;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  opacity: 0.85;
+}
+
+.logout-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.logout-card {
+  width: 824px;
+  min-height: 180px;
+  margin-top: 32px;
+  padding: 29px 24px;
+}
+
+.logout-card p {
+  margin: 25px 0 0;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 22px;
+  color: #000000;
+}
+
+.logout-title-icon {
+  background: rgba(180, 35, 24, 0.15);
+}
+
+.logout-title-icon span {
+  color: #b42318;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.logout-btn {
+  width: 130px;
+  height: 48px;
+  margin-top: 25px;
+  border: none;
+  border-radius: 64px;
+  background: #b42318;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 17px;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  opacity: 0.85;
+}
+
+.logout-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+@media (max-width: 1100px) {
+  .logout-card {
+    width: 100%;
+  }
+}
+
+.export-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.export-btn:disabled,
+.profile-save-btn:disabled,
+.profile-cancel-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.profile-photo-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.profile-photo-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-photo-btn,
+.profile-photo-remove-btn {
+  width: 118px;
+  height: 34px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.profile-photo-btn {
+  border: none;
+  background: linear-gradient(90deg, #4078fb 0%, #695de8 100%);
+  color: #ffffff;
+}
+
+.profile-photo-remove-btn {
+  border: 1px solid #b42318;
+  background: #ffffff;
+  color: #b42318;
+}
+
+.profile-photo-btn:hover,
+.profile-photo-remove-btn:hover {
+  opacity: 0.85;
+}

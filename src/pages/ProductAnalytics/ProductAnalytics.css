@@ -341,3 +341,161 @@
     width: 100%;
   }
 }
+
+.pa-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.pa-edit-modal {
+  width: 620px;
+  max-width: 100%;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.22);
+}
+
+.pa-edit-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.pa-edit-modal-header h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.pa-edit-modal-header p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.pa-edit-modal-header button {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: #f4f4f4;
+  color: #000000;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pa-edit-error {
+  margin: 16px 0 0;
+  color: #b42318;
+  font-size: 14px;
+}
+
+.pa-edit-form-grid {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+
+.pa-edit-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pa-edit-form-group label,
+.pa-edit-platform-section > label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.pa-edit-form-group input {
+  height: 44px;
+  border: none;
+  outline: none;
+  border-radius: 8px;
+  background: #f4f4f4;
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.25);
+  padding: 0 14px;
+  font-size: 14px;
+}
+
+.pa-edit-platform-section {
+  margin-top: 22px;
+}
+
+.pa-edit-platform-grid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.pa-edit-platform-option {
+  height: 44px;
+  border-radius: 8px;
+  background: #f4f4f4;
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.25);
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.pa-edit-platform-option span {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.pa-edit-modal-actions {
+  margin-top: 26px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.pa-edit-cancel-btn,
+.pa-edit-save-btn {
+  height: 48px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pa-edit-cancel-btn {
+  background: #ffffff;
+  border: 1px solid #000000;
+  color: #000000;
+}
+
+.pa-edit-save-btn {
+  border: none;
+  background: linear-gradient(90deg, #695de8 0%, #4078fb 100%);
+  color: #ffffff;
+}
+
+.pa-edit-save-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+@media (max-width: 640px) {
+  .pa-edit-form-grid,
+  .pa-edit-platform-grid,
+  .pa-edit-modal-actions {
+    grid-template-columns: 1fr;
+  }
+}

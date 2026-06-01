@@ -150,3 +150,16 @@
     padding: 30px 24px 80px;
   }
 }
+
+.admin-profile-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.admin-profile-text small {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.55);
+  line-height: 1;
+}

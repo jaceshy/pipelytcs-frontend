@@ -1,6 +1,59 @@
+import { useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import "./SignUp.css";
 
 const SignUp = () => {
+  const navigate = useNavigate();
+  const { register } = useAuth();
+
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isAgreed, setIsAgreed] = useState(false);
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setErrorMessage("");
+
+    if (password !== confirmPassword) {
+      setErrorMessage("Password confirmation does not match");
+      return;
+    }
+
+    if (!isAgreed) {
+      setErrorMessage("Please agree to the Terms of Service and Privacy Policy");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const user = await register({
+        fullName,
+        email,
+        password,
+      });
+
+      if (user.role === "admin") {
+        navigate("/dashboard");
+        return;
+      }
+
+      navigate("/team/dashboard");
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Register failed"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <main className="signup-page">
       <section className="signup-container">
@@ -34,43 +87,73 @@ const SignUp = () => {
           </div>
         </div>
 
-        <form className="signup-card">
+        <form className="signup-card" onSubmit={handleSubmit}>
           <div className="signup-header">
             <h2>Create Account</h2>
             <p>Start your analytics journey today</p>
           </div>
 
+          {errorMessage && (
+            <p style={{ color: "#b42318", fontSize: "14px", margin: 0 }}>
+              {errorMessage}
+            </p>
+          )}
+
           <div className="signup-form-group">
             <label>Full Name</label>
-            <input type="text" />
+            <input
+              type="text"
+              value={fullName}
+              onChange={(event) => setFullName(event.target.value)}
+              required
+            />
           </div>
 
           <div className="signup-form-group">
             <label>Email</label>
-            <input type="email" />
+            <input
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+            />
           </div>
 
           <div className="signup-form-group">
             <label>Password</label>
-            <input type="password" />
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+            />
           </div>
 
           <div className="signup-form-group">
             <label>Confirm Password</label>
-            <input type="password" />
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              required
+            />
           </div>
 
           <label className="terms-row">
-            <input type="checkbox" />
+            <input
+              type="checkbox"
+              checked={isAgreed}
+              onChange={(event) => setIsAgreed(event.target.checked)}
+            />
             <span>I agree to the Terms of Service and Privacy Policy</span>
           </label>
 
-          <button type="submit" className="signup-button">
-            Create Account
+          <button type="submit" className="signup-button" disabled={isLoading}>
+            {isLoading ? "Creating Account..." : "Create Account"}
           </button>
 
           <p className="login-text">
-            Already have an account? <a href="/login">Login</a>
+            Already have an account? <Link to="/login">Login</Link>
           </p>
         </form>
       </section>

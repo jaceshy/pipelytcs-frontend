@@ -1,34 +1,55 @@
-export interface AuthPayload {
+import { apiRequest } from "./api";
+
+export type UserRole = "admin" | "team";
+
+export interface AuthUser {
+  id: number;
+  nama: string;
+  email: string;
+  role: UserRole;
+  status: string;
+}
+
+export interface AuthResponse {
+  message: string;
+  token: string;
+  user: AuthUser;
+}
+
+export interface RegisterPayload {
   fullName?: string;
+  nama?: string;
   email: string;
   password: string;
 }
 
-interface LoginPayload {
+export interface LoginPayload {
   email: string;
   password: string;
 }
 
-const users: AuthPayload[] = [];
-
-export const register = async (data: AuthPayload) => {
-  return new Promise<string>((resolve, reject) => {
-    setTimeout(() => {
-      if (!data.email.includes("@")) return reject(new Error("Invalid email"));
-      if (users.find(u => u.email === data.email)) return reject(new Error("Email already exists"));
-
-      users.push(data);
-      resolve("ok");
-    }, 500);
+export const register = async (data: RegisterPayload) => {
+  return apiRequest<AuthResponse>("/register", {
+    method: "POST",
+    auth: false,
+    body: {
+      nama: data.nama || data.fullName,
+      email: data.email,
+      password: data.password,
+    },
   });
 };
 
 export const login = async (data: LoginPayload) => {
-  return new Promise<AuthPayload>((resolve, reject) => {
-    setTimeout(() => {
-      const user = users.find(u => u.email === data.email && u.password === data.password);
-      if (!user) return reject(new Error("Invalid credentials"));
-      resolve(user);
-    }, 500);
+  return apiRequest<AuthResponse>("/login", {
+    method: "POST",
+    auth: false,
+    body: data,
+  });
+};
+
+export const logout = async () => {
+  return apiRequest<{ message: string }>("/logout", {
+    method: "POST",
   });
 };

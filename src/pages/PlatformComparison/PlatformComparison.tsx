@@ -1,125 +1,160 @@
+import { useEffect, useMemo, useState } from "react";
+import { apiRequest } from "../../services/api";
 import "./PlatformComparison.css";
 
-const topCards = [
-  {
-    title: "Best Platform Today",
-    badge: "Shopee",
-    value: "Rp 45,000,000",
-    subtitle: "Daily Revenue",
-    icon: "/assets/dashboard/icons/trophy.svg",
-    badgeClass: "shopee",
-  },
-  {
-    title: "Highest Conversion",
-    badge: "TikTok Shop",
-    value: "5.6%",
-    subtitle: "Conversion Rate",
-    icon: "/assets/dashboard/icons/award.svg",
-    badgeClass: "tiktok",
-  },
-  {
-    title: "Best Growth Rate",
-    badge: "TikTok Shop",
-    value: "+28.4%",
-    subtitle: "Monthly Growth",
-    icon: "/assets/dashboard/icons/five-ellipses.svg",
-    badgeClass: "tiktok",
-  },
-];
+type PlatformMetric = {
+  id: number;
+  nama_platform: string;
+  total_revenue: number;
+  total_units_sold: number;
+  total_orders: number;
+  aov: number;
+  growth_rate: number;
+  estimated_traffic: number;
+  conversion_rate: number;
+  fee_rate: number;
+  fee_total: number;
+};
 
-const revenueSeries = [
-  {
-    name: "Shopee",
-    className: "line-shopee",
-    points: [
-      [70, 110],
-      [283, 100],
-      [515, 86],
-      [748, 76],
-    ],
-  },
-  {
-    name: "Tokopedia",
-    className: "line-tokopedia",
-    points: [
-      [70, 135],
-      [283, 124],
-      [515, 132],
-      [748, 116],
-    ],
-  },
-  {
-    name: "TikTok Shop",
-    className: "line-tiktok",
-    points: [
-      [70, 170],
-      [283, 158],
-      [515, 147],
-      [748, 137],
-    ],
-  },
-  {
-    name: "Instagram",
-    className: "line-instagram",
-    points: [
-      [70, 198],
-      [283, 188],
-      [515, 179],
-      [748, 168],
-    ],
-  },
-];
+type DailyRevenue = {
+  tanggal: string;
+  platform_id: number;
+  nama_platform: string;
+  total_revenue: number;
+  total_units_sold: number;
+};
 
-const feeBars = [
-  ["Shopee", 215],
-  ["Tokopedia", 157],
-  ["TikTok", 115],
-  ["Instagram", 88],
-];
+type PlatformComparisonResponse = {
+  message: string;
+  summary: {
+    best_platform_today: PlatformMetric | null;
+    highest_conversion: PlatformMetric | null;
+    best_growth_rate: PlatformMetric | null;
+  };
+  platform_metrics: PlatformMetric[];
+  daily_revenue: DailyRevenue[];
+};
 
-const trafficBars = [
-  ["Shopee", 246],
-  ["Tokopedia", 176],
-  ["TikTok", 135],
-  ["Instagram", 105],
-];
+const platformColors: Record<string, string> = {
+  shopee: "#ff6b35",
+  tokopedia: "#4ecb71",
+  tiktok: "#000000",
+  instagram: "#ea3ead",
+};
 
-const platformMetrics = [
-  {
-    platform: "Shopee",
-    revenue: "Rp 145,000,000",
-    orders: "487",
-    aov: "Rp 298,000",
-    growth: "+12.3%",
-    badgeClass: "shopee",
-  },
-  {
-    platform: "TikTok Shop",
-    revenue: "Rp 76,000,000",
-    orders: "267",
-    aov: "Rp 285,000",
-    growth: "+28.4%",
-    badgeClass: "tiktok",
-  },
-  {
-    platform: "Instagram",
-    revenue: "Rp 54,000,000",
-    orders: "171",
-    aov: "Rp 316,000",
-    growth: "+15.2%",
-    badgeClass: "instagram",
-  },
-  {
-    platform: "Tokopedia",
-    revenue: "Rp 98,000,000",
-    orders: "312",
-    aov: "Rp 314,000",
-    growth: "+8.7%",
-    badgeClass: "tokopedia",
-  },
-];
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(Number(value || 0));
+};
+
+const formatNumber = (value: number) => {
+  return new Intl.NumberFormat("id-ID").format(Number(value || 0));
+};
+
+const formatPercent = (value: number) => {
+  const sign = Number(value || 0) >= 0 ? "+" : "";
+  return `${sign}${Number(value || 0).toFixed(1)}%`;
+};
+
+const getPlatformClass = (platformName?: string) => {
+  const name = (platformName || "").toLowerCase();
+
+  if (name.includes("tokopedia")) return "tokopedia";
+  if (name.includes("tiktok")) return "tiktok";
+  if (name.includes("instagram")) return "instagram";
+  return "shopee";
+};
+
+const makeLinePoints = (
+  platformId: number,
+  dates: string[],
+  dailyRevenue: DailyRevenue[],
+  maxRevenue: number
+) => {
+  if (dates.length === 0) {
+    return "";
+  }
+
+  const step = dates.length > 1 ? 690 / (dates.length - 1) : 0;
+
+  return dates
+    .map((date, index) => {
+      const item = dailyRevenue.find(
+        (row) => row.platform_id === platformId && row.tanggal === date
+      );
+
+      const value = Number(item?.total_revenue || 0);
+      const x = dates.length > 1 ? 70 + index * step : 400;
+      const y = 245 - (value / maxRevenue) * 210;
+
+      return `${x},${y}`;
+    })
+    .join(" ");
+};
 
 const PlatformComparison = () => {
+  const [platformMetrics, setPlatformMetrics] = useState<PlatformMetric[]>([]);
+  const [dailyRevenue, setDailyRevenue] = useState<DailyRevenue[]>([]);
+  const [summary, setSummary] = useState<
+    PlatformComparisonResponse["summary"] | null
+  >(null);
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const fetchPlatformComparison = async () => {
+    setIsLoading(true);
+    setErrorMessage("");
+
+    try {
+      const response = await apiRequest<PlatformComparisonResponse>("/platforms");
+
+      setSummary(response.summary);
+      setPlatformMetrics(response.platform_metrics || []);
+      setDailyRevenue(response.daily_revenue || []);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Failed to load platform comparison"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPlatformComparison();
+  }, []);
+
+  const dates = useMemo(() => {
+    return Array.from(new Set(dailyRevenue.map((item) => item.tanggal))).sort();
+  }, [dailyRevenue]);
+
+  const maxRevenue = useMemo(() => {
+    return Math.max(
+      ...dailyRevenue.map((item) => Number(item.total_revenue || 0)),
+      1
+    );
+  }, [dailyRevenue]);
+
+  const maxFee = Math.max(
+    ...platformMetrics.map((item) => Number(item.fee_total || 0)),
+    1
+  );
+
+  const maxTraffic = Math.max(
+    ...platformMetrics.map((item) => Number(item.estimated_traffic || 0)),
+    1
+  );
+
+  const bestPlatform = summary?.best_platform_today;
+  const highestConversion = summary?.highest_conversion;
+  const bestGrowth = summary?.best_growth_rate;
+
   return (
     <div className="platform-comparison-page">
       <section className="pc-heading">
@@ -127,87 +162,151 @@ const PlatformComparison = () => {
         <p>Compare performance across Shopee, Tokopedia, TikTok Shop, and Instagram</p>
       </section>
 
+      {errorMessage && (
+        <p style={{ color: "#b42318", marginTop: "18px" }}>{errorMessage}</p>
+      )}
+
       <section className="pc-summary-row">
-        {topCards.map((card) => (
-          <div className="pc-summary-card" key={card.title}>
-            <div className="pc-summary-title">
-              <div className="pc-summary-icon-box">
-                <img src={card.icon} alt="" />
-              </div>
-              <span>{card.title}</span>
+        <div className="pc-summary-card">
+          <div className="pc-summary-title">
+            <div className="pc-summary-icon-box">
+              <img src="/assets/dashboard/icons/platform-comparison.svg" alt="" />
             </div>
-
-            <span className={`pc-platform-badge ${card.badgeClass}`}>
-              {card.badge}
-            </span>
-
-            <h3>{card.value}</h3>
-            <p>{card.subtitle}</p>
+            <span>Best Platform Today</span>
           </div>
-        ))}
+
+          <span
+            className={`pc-platform-badge ${getPlatformClass(
+              bestPlatform?.nama_platform
+            )}`}
+          >
+            {isLoading ? "..." : bestPlatform?.nama_platform || "No Data"}
+          </span>
+
+          <h3>{formatCurrency(Number(bestPlatform?.total_revenue || 0))}</h3>
+          <p>Daily Revenue</p>
+        </div>
+
+        <div className="pc-summary-card">
+          <div className="pc-summary-title">
+            <div className="pc-summary-icon-box">
+              <img src="/assets/dashboard/icons/customer-retention.svg" alt="" />
+            </div>
+            <span>Highest Conversion</span>
+          </div>
+
+          <span
+            className={`pc-platform-badge ${getPlatformClass(
+              highestConversion?.nama_platform
+            )}`}
+          >
+            {isLoading ? "..." : highestConversion?.nama_platform || "No Data"}
+          </span>
+
+          <h3>{Number(highestConversion?.conversion_rate || 0).toFixed(1)}%</h3>
+          <p>Conversion Rate</p>
+        </div>
+
+        <div className="pc-summary-card">
+          <div className="pc-summary-title">
+            <div className="pc-summary-icon-box">
+              <img src="/assets/dashboard/icons/sales-growth.svg" alt="" />
+            </div>
+            <span>Best Growth Rate</span>
+          </div>
+
+          <span
+            className={`pc-platform-badge ${getPlatformClass(
+              bestGrowth?.nama_platform
+            )}`}
+          >
+            {isLoading ? "..." : bestGrowth?.nama_platform || "No Data"}
+          </span>
+
+          <h3>{formatPercent(Number(bestGrowth?.growth_rate || 0))}</h3>
+          <p>Monthly Growth</p>
+        </div>
       </section>
 
       <section className="pc-card pc-revenue-card">
         <div className="pc-card-heading">
-          <h3>Revenue Comparison (Last 4 Weeks)</h3>
-          <p>Weekly revenue trends across all platforms</p>
+          <h3>Revenue Comparison (Last 30 Days)</h3>
+          <p>Daily revenue trends across all platforms</p>
         </div>
 
         <div className="pc-line-chart-wrap">
-          <svg className="pc-line-chart" viewBox="0 0 780 285">
-            <text x="0" y="16">60000</text>
-            <text x="0" y="76">45000</text>
-            <text x="0" y="136">30000</text>
-            <text x="4" y="196">15000</text>
-            <text x="37" y="256">0</text>
+          <svg className="pc-line-chart" viewBox="0 0 809 285">
+            <line x1="70" y1="15" x2="70" y2="245" />
+            <line x1="70" y1="245" x2="780" y2="245" />
 
-            <line x1="62" y1="10" x2="62" y2="257" />
-            <line x1="62" y1="257" x2="750" y2="257" />
+            <text x="10" y="25">High</text>
+            <text x="10" y="130">Mid</text>
+            <text x="45" y="250">0</text>
 
-            <line x1="58" y1="70" x2="66" y2="70" />
-            <line x1="58" y1="130" x2="66" y2="130" />
-            <line x1="58" y1="190" x2="66" y2="190" />
-            <line x1="58" y1="10" x2="66" y2="10" />
+            {dates.map((date, index) => {
+              const step = dates.length > 1 ? 690 / (dates.length - 1) : 0;
+              const x = dates.length > 1 ? 55 + index * step : 380;
 
-            <text x="42" y="282">Week 1</text>
-            <text x="254" y="282">Week 2</text>
-            <text x="486" y="282">Week 3</text>
-            <text x="718" y="282">Week 4</text>
+              if (index % Math.ceil(Math.max(dates.length / 4, 1)) !== 0) {
+                return null;
+              }
 
-            {revenueSeries.map((series) => (
-              <g key={series.name}>
-                <polyline
-                  className={series.className}
-                  points={series.points.map(([x, y]) => `${x},${y}`).join(" ")}
-                />
+              return (
+                <text key={date} x={x} y="280">
+                  {new Date(date).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </text>
+              );
+            })}
 
-                {series.points.map(([x, y]) => (
-                  <circle
-                    key={`${series.name}-${x}`}
-                    className={series.className}
-                    cx={x}
-                    cy={y}
-                    r="7"
-                  />
-                ))}
-              </g>
-            ))}
+            {platformMetrics.map((platform) => {
+              const platformClass = getPlatformClass(platform.nama_platform);
+              const points = makeLinePoints(
+                platform.id,
+                dates,
+                dailyRevenue,
+                maxRevenue
+              );
+
+              if (!points) {
+                return null;
+              }
+
+              return (
+                <g key={platform.id}>
+                  <polyline className={`line-${platformClass}`} points={points} />
+
+                  {points.split(" ").map((point) => {
+                    const [x, y] = point.split(",");
+
+                    return (
+                      <circle
+                        key={`${platform.id}-${point}`}
+                        className={`line-${platformClass}`}
+                        cx={x}
+                        cy={y}
+                        r="5"
+                      />
+                    );
+                  })}
+                </g>
+              );
+            })}
           </svg>
         </div>
 
         <div className="pc-chart-legend pc-main-legend">
-          <span className="legend-item shopee">
-            <i /> Shopee
-          </span>
-          <span className="legend-item tokopedia">
-            <i /> Tokopedia
-          </span>
-          <span className="legend-item tiktok">
-            <i /> TikTok Shop
-          </span>
-          <span className="legend-item instagram">
-            <i /> Instagram
-          </span>
+          {platformMetrics.map((platform) => (
+            <span
+              className={`legend-item ${getPlatformClass(platform.nama_platform)}`}
+              key={platform.id}
+            >
+              <i />
+              {platform.nama_platform}
+            </span>
+          ))}
         </div>
       </section>
 
@@ -215,63 +314,77 @@ const PlatformComparison = () => {
         <div className="pc-card pc-small-card">
           <div className="pc-card-heading">
             <h3>Platform Fees Comparison</h3>
-            <p>Total fees charged by each platform</p>
+            <p>Estimated fees charged by each platform</p>
           </div>
 
           <div className="pc-bar-chart-area fee-chart">
             <div className="pc-bar-y-labels">
-              <span>8000</span>
-              <span>6000</span>
-              <span>4000</span>
-              <span>2000</span>
+              <span>High</span>
+              <span>Mid</span>
+              <span>Low</span>
               <span>0</span>
             </div>
 
             <div className="pc-bar-chart">
-              {feeBars.map(([label, height]) => (
-                <div className="pc-bar-item" key={label}>
-                  <div className="fee-bar" style={{ height: `${height}px` }} />
-                  <span>{label}</span>
-                </div>
-              ))}
+              {platformMetrics.map((platform) => {
+                const height = Math.max(
+                  (Number(platform.fee_total || 0) / maxFee) * 240,
+                  platform.fee_total > 0 ? 20 : 0
+                );
+
+                return (
+                  <div className="pc-bar-item" key={platform.id}>
+                    <div className="fee-bar" style={{ height }} />
+                    <span>{platform.nama_platform}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
-          <div className="pc-chart-legend small-legend fees">
+          <div className="pc-chart-legend small-legend">
             <span className="legend-item fees">
-              <i /> Fees
+              <i />
+              Fees
             </span>
           </div>
         </div>
 
-        <div className="pc-card pc-small-card traffic-card">
+        <div className="pc-card pc-small-card">
           <div className="pc-card-heading">
             <h3>Traffic vs Revenue Analysis</h3>
-            <p>Comparing visitor traffic and generated revenue</p>
+            <p>Estimated traffic proxy by platform</p>
           </div>
 
           <div className="pc-bar-chart-area traffic-chart">
             <div className="pc-bar-y-labels traffic-labels">
-              <span>160000</span>
-              <span>120000</span>
-              <span>80000</span>
-              <span>4000</span>
+              <span>High</span>
+              <span>Mid</span>
+              <span>Low</span>
               <span>0</span>
             </div>
 
             <div className="pc-bar-chart">
-              {trafficBars.map(([label, height]) => (
-                <div className="pc-bar-item traffic-item" key={label}>
-                  <div className="traffic-bar" style={{ height: `${height}px` }} />
-                  <span>{label}</span>
-                </div>
-              ))}
+              {platformMetrics.map((platform) => {
+                const height = Math.max(
+                  (Number(platform.estimated_traffic || 0) / maxTraffic) * 240,
+                  platform.estimated_traffic > 0 ? 20 : 0
+                );
+
+                return (
+                  <div className="pc-bar-item traffic-item" key={platform.id}>
+                    <div className="traffic-bar" style={{ height }} />
+                    <span>{platform.nama_platform}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
-          <div className="pc-chart-legend small-legend revenue">
+          <div className="pc-chart-legend small-legend">
             <span className="legend-item revenue">
-              <i /> Revenue
+              <i />
+              Traffic
             </span>
           </div>
         </div>
@@ -295,17 +408,27 @@ const PlatformComparison = () => {
           </thead>
 
           <tbody>
-            {platformMetrics.map((row) => (
-              <tr key={row.platform}>
+            {platformMetrics.length === 0 && (
+              <tr>
+                <td colSpan={5}>No platform data found.</td>
+              </tr>
+            )}
+
+            {platformMetrics.map((platform) => (
+              <tr key={platform.id}>
                 <td>
-                  <span className={`pc-table-badge ${row.badgeClass}`}>
-                    {row.platform}
+                  <span
+                    className={`pc-table-badge ${getPlatformClass(
+                      platform.nama_platform
+                    )}`}
+                  >
+                    {platform.nama_platform}
                   </span>
                 </td>
-                <td>{row.revenue}</td>
-                <td>{row.orders}</td>
-                <td>{row.aov}</td>
-                <td className="pc-growth">{row.growth}</td>
+                <td>{formatCurrency(platform.total_revenue)}</td>
+                <td>{formatNumber(platform.total_orders)}</td>
+                <td>{formatCurrency(platform.aov)}</td>
+                <td className="pc-growth">{formatPercent(platform.growth_rate)}</td>
               </tr>
             ))}
           </tbody>

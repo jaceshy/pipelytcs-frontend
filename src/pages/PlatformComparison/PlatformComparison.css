@@ -489,3 +489,25 @@
     min-width: 800px;
   }
 }
+
+.pc-platform-badge.tokopedia {
+  background: #26b64f;
+}
+
+.pc-platform-badge.instagram {
+  background: linear-gradient(90deg, #b749f7 0%, #ea3ead 100%);
+}
+
+.pc-platform-badge.tiktok {
+  background: #000000;
+}
+
+.line-tokopedia {
+  stroke: #4ecb71;
+  fill: #4ecb71;
+}
+
+.line-instagram {
+  stroke: #ea3ead;
+  fill: #ea3ead;
+}
