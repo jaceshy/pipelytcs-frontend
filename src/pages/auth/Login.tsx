@@ -103,9 +103,6 @@ const Login = () => {
               onChange={(event) => setPassword(event.target.value)}
               required
             />
-            <a href="#" className="forgot-link">
-              Forgot password?
-            </a>
           </div>
 
           <button type="submit" className="login-button" disabled={isLoading}>

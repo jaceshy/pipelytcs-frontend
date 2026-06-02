@@ -11,7 +11,6 @@ const SignUp = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isAgreed, setIsAgreed] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -22,11 +21,6 @@ const SignUp = () => {
 
     if (password !== confirmPassword) {
       setErrorMessage("Password confirmation does not match");
-      return;
-    }
-
-    if (!isAgreed) {
-      setErrorMessage("Please agree to the Terms of Service and Privacy Policy");
       return;
     }
 
@@ -138,15 +132,6 @@ const SignUp = () => {
               required
             />
           </div>
-
-          <label className="terms-row">
-            <input
-              type="checkbox"
-              checked={isAgreed}
-              onChange={(event) => setIsAgreed(event.target.checked)}
-            />
-            <span>I agree to the Terms of Service and Privacy Policy</span>
-          </label>
 
           <button type="submit" className="signup-button" disabled={isLoading}>
             {isLoading ? "Creating Account..." : "Create Account"}
