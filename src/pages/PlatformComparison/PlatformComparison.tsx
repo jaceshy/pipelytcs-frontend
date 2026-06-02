@@ -35,12 +35,12 @@ type PlatformComparisonResponse = {
   daily_revenue: DailyRevenue[];
 };
 
-const platformColors: Record<string, string> = {
-  shopee: "#ff6b35",
-  tokopedia: "#4ecb71",
-  tiktok: "#000000",
-  instagram: "#ea3ead",
-};
+// const platformColors: Record<string, string> = {
+//   shopee: "#ff6b35",
+//   tokopedia: "#4ecb71",
+//   tiktok: "#000000",
+//   instagram: "#ea3ead",
+// };
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat("id-ID", {
